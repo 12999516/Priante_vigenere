@@ -11,10 +11,6 @@ class Lettera {
         return carattere;
     }
 
-    public void setCarattere(char carattere) {
-        this.carattere = carattere;
-    }
-
     public boolean isStampabile() {
         return carattere >= 32 && carattere <= 126;
     }
@@ -28,12 +24,9 @@ class Lettera {
         int max = 126;
         int range = max - min + 1;
 
-        int effettivoSalto = salto;
-        if (direzione.equals("-")) {
-            effettivoSalto = -salto;
-        }
+        int effettivoSalto = direzione.equals("-") ? -salto : salto;
+        int codiceCorrente = carattere;
 
-        int codiceCorrente = (int) carattere;
         int nuovoCodice = ((codiceCorrente - min + effettivoSalto) % range + range) % range + min;
 
         this.carattere = (char) nuovoCodice;
@@ -44,32 +37,34 @@ class VigenereApp {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
 
-        System.out.println("=== CIFRARIO DI VIGENÈRE SU TABELLA ASCII (32-126) ===");
+        System.out.println("=== CIFRARIO DI VIGENÈRE CON CHIAVE NUMERICA (ASCII 32-126) ===");
 
-        // Acquisizione e validazione della chiave letteraria
-        String chiave = "";
+        int lunghezzaChiave = 0;
         while (true) {
-            System.out.print("Inserisci la chiave letteraria (solo caratteri ASCII da 32 a 126): ");
-            chiave = scanner.nextLine();
-
-            if (chiave.isEmpty()) {
-                System.out.println("Errore: La chiave non può essere vuota.");
-                continue;
-            }
-
-            boolean chiaveValida = true;
-            for (int i = 0; i < chiave.length(); i++) {
-                char c = chiave.charAt(i);
-                if (c < 32 || c > 126) {
-                    chiaveValida = false;
+            System.out.print("Inserisci la lunghezza della chiave (maggiore di 0): ");
+            if (scanner.hasNextInt()) {
+                lunghezzaChiave = scanner.nextInt();
+                if (lunghezzaChiave > 0) {
                     break;
                 }
-            }
-
-            if (chiaveValida) {
-                break;
             } else {
-                System.out.println("Errore: La chiave contiene caratteri non validi (sono esclusi i codici 0-31 e 127).");
+                scanner.next();
+            }
+            System.out.println("Errore: La lunghezza deve essere un numero intero maggiore di 0.");
+        }
+
+        int[] chiave = new int[lunghezzaChiave];
+        System.out.println("Inserisci i " + lunghezzaChiave + " numeri della chiave:");
+        for (int i = 0; i < lunghezzaChiave; i++) {
+            while (true) {
+                System.out.print("  Numero " + (i + 1) + ": ");
+                if (scanner.hasNextInt()) {
+                    chiave[i] = scanner.nextInt();
+                    break;
+                } else {
+                    System.out.println("Errore: Inserisci un numero intero valido.");
+                    scanner.next();
+                }
             }
         }
 
@@ -87,7 +82,7 @@ class VigenereApp {
             System.out.println("Errore: Scelta non valida. Inserisci 1 per cifrare o 2 per decifrare.");
         }
 
-        scanner.nextLine(); // Pulizia buffer
+        scanner.nextLine();
 
         System.out.print("Inserisci il testo: ");
         String testo = scanner.nextLine();
@@ -100,10 +95,7 @@ class VigenereApp {
             Lettera lettera = new Lettera(testo.charAt(i));
 
             if (lettera.isStampabile()) {
-                // Prende il carattere corrente della chiave e calcola il salto (offset da 32)
-                char carattereChiave = chiave.charAt(indiceChiave % chiave.length());
-                int salto = carattereChiave - 32;
-
+                int salto = chiave[indiceChiave % chiave.length];
                 lettera.trasla(salto, direzione);
                 indiceChiave++;
             }
@@ -113,7 +105,7 @@ class VigenereApp {
 
         String nomeOperazione = (operazione == 1) ? "Testo cifrato" : "Testo decifrato";
         System.out.println("\n----------------------------------------");
-        System.out.println(nomeOperazione + ": " + risultato.toString());
+        System.out.println(nomeOperazione + ": " + risultato);
         System.out.println("----------------------------------------");
 
         scanner.close();
