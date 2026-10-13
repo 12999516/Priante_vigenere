@@ -34,7 +34,6 @@ class Lettera {
         }
 
         int codiceCorrente = (int) carattere;
-
         int nuovoCodice = ((codiceCorrente - min + effettivoSalto) % range + range) % range + min;
 
         this.carattere = (char) nuovoCodice;
@@ -47,32 +46,30 @@ class VigenereApp {
 
         System.out.println("=== CIFRARIO DI VIGENÈRE SU TABELLA ASCII (32-126) ===");
 
-        int lunghezzaChiave = 0;
+        // Acquisizione e validazione della chiave letteraria
+        String chiave = "";
         while (true) {
-            System.out.print("Inserisci la lunghezza della chiave (maggiore di 0): ");
-            if (scanner.hasNextInt()) {
-                lunghezzaChiave = scanner.nextInt();
-                if (lunghezzaChiave > 0) {
-                    break;
-                }
-            } else {
-                scanner.next();
-            }
-            System.out.println("Errore: La lunghezza deve essere un numero intero maggiore di 0.");
-        }
+            System.out.print("Inserisci la chiave letteraria (solo caratteri ASCII da 32 a 126): ");
+            chiave = scanner.nextLine();
 
-        int[] chiave = new int[lunghezzaChiave];
-        System.out.println("Inserisci i " + lunghezzaChiave + " numeri della chiave:");
-        for (int i = 0; i < lunghezzaChiave; i++) {
-            while (true) {
-                System.out.print("  Numero " + (i + 1) + ": ");
-                if (scanner.hasNextInt()) {
-                    chiave[i] = scanner.nextInt();
+            if (chiave.isEmpty()) {
+                System.out.println("Errore: La chiave non può essere vuota.");
+                continue;
+            }
+
+            boolean chiaveValida = true;
+            for (int i = 0; i < chiave.length(); i++) {
+                char c = chiave.charAt(i);
+                if (c < 32 || c > 126) {
+                    chiaveValida = false;
                     break;
-                } else {
-                    System.out.println("Errore: Inserisci un numero intero valido.");
-                    scanner.next();
                 }
+            }
+
+            if (chiaveValida) {
+                break;
+            } else {
+                System.out.println("Errore: La chiave contiene caratteri non validi (sono esclusi i codici 0-31 e 127).");
             }
         }
 
@@ -90,7 +87,7 @@ class VigenereApp {
             System.out.println("Errore: Scelta non valida. Inserisci 1 per cifrare o 2 per decifrare.");
         }
 
-        scanner.nextLine();
+        scanner.nextLine(); // Pulizia buffer
 
         System.out.print("Inserisci il testo: ");
         String testo = scanner.nextLine();
@@ -103,7 +100,10 @@ class VigenereApp {
             Lettera lettera = new Lettera(testo.charAt(i));
 
             if (lettera.isStampabile()) {
-                int salto = chiave[indiceChiave % chiave.length];
+                // Prende il carattere corrente della chiave e calcola il salto (offset da 32)
+                char carattereChiave = chiave.charAt(indiceChiave % chiave.length());
+                int salto = carattereChiave - 32;
+
                 lettera.trasla(salto, direzione);
                 indiceChiave++;
             }
